@@ -15,7 +15,7 @@ from django.contrib.auth import login, logout
 class Registration(APIView):
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
 
             webtoken = default_token_generator.make_token(user=serializer.user)
@@ -32,10 +32,10 @@ class Registration(APIView):
                     status=status.HTTP_201_CREATED
                 )
             # пока что пользователь сохраняется и потом мешает, даже если письмо не прошло
-            return Response(
-                "Check your email permissions",
-                status=status.HTTP_201_CREATED
-            )
+            # return Response(
+            #     "Check your email permissions",
+            #     status=status.HTTP_201_CREATED
+            # )
         return Response(
             serializer.error_messages,
             status=status.HTTP_400_BAD_REQUEST
@@ -44,32 +44,64 @@ class Registration(APIView):
 
 class Activation(APIView):
     def post(self, request, webtoken):
-        user = CustomUser.objects.filter(username=request.data['username'])[0]
-        if user is not None and default_token_generator.check_token(user, webtoken):
-            user.is_active = True
-            user.save()
-            return Response("Registration completed successfully", status=status.HTTP_202_ACCEPTED)
+        try:
+            user = CustomUser.objects.filter(email=request.data['email'])[0]
+            # code for login by username
+            # user = CustomUser.objects.filter(username=request.data['username'])[0]
+            if user is not None and default_token_generator.check_token(user, webtoken):
+                user.is_active = True
+                user.save()
+                return Response("Registration completed successfully", status=status.HTTP_202_ACCEPTED)
+        except KeyError:
+            return Response("Invalid fieldnames", status=status.HTTP_400_BAD_REQUEST)
+        except IndexError:
+            return Response("This email address does not registered", status=status.HTTP_400_BAD_REQUEST)
         return Response("User does not exist or token is incorrect", status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginAPI(APIView):
     def post(self, request):
-        user = auth.authenticate(
-            request,
-            username=request.data['username'],
-            password=request.data['password']
+        try:
+            user = auth.authenticate(
+                request,
+                email=request.data['email'],
+                password=request.data['password']
+                )
+            if user is not None:
+                login(request, user)
+                token, flag = Token.objects.get_or_create(user=user)
+                send_mail(
+                    'Hello from eventmaster! Here is your access token ',
+                    f'Token:  {token}',
+                    settings.EMAIL_HOST_USER,
+                    [user.email]
+                )
+                return Response("You are +", status=status.HTTP_200_OK)
+        except KeyError:
+            return Response("Invalid fieldnames", status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            "Invalid login or password, or account does not activated",
+            status=status.HTTP_400_BAD_REQUEST
         )
-        if user is not None:
-            login(request, user)
-            token, flag = Token.objects.get_or_create(user=user)
-            send_mail(
-                'Hello from eventmaster! Here is your access token ',
-                f'Token:  {token}',
-                settings.EMAIL_HOST_USER,
-                [user.email]
-            )
-            return Response({}, status=status.HTTP_200_OK)
-        return Response("Invalid username or password", status=status.HTTP_400_BAD_REQUEST)
+
+
+        # code for login by username, insert it into the try-block
+
+        # user = auth.authenticate(
+        #     request,
+        #     username=request.data['username'],
+        #     password=request.data['password']
+        # )
+        # if user is not None:
+        #     login(request, user)
+        #     token, flag = Token.objects.get_or_create(user=user)
+        #     send_mail(
+        #         'Hello from eventmaster! Here is your access token ',
+        #         f'Token:  {token}',
+        #         settings.EMAIL_HOST_USER,
+        #         [user.email]
+        #     )
+        #     return Response({}, status=status.HTTP_200_OK)
 
 
 class LogoutAPI(APIView):

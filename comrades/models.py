@@ -11,3 +11,11 @@ class Country(models.Model):
 
 class CustomUser(AbstractUser):
     country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True, blank=True)
+    # to login by username - comment code below
+    # and code in LoginAPI(APIView)
+    # and code in Activation(APIView)
+    # and code in RegistrationSerializer.
+    # Make migrations.
+    email = models.EmailField(unique=True)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
