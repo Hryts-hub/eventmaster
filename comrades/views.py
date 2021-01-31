@@ -9,17 +9,7 @@ from rest_framework.views import APIView
 from comrades.models import CustomUser
 from comrades.serializers import RegistrationSerializer
 from django.conf import settings
-
-
-class CreateToken(APIView):
-    def post(self, request):
-        login = request.data.get('login')
-        pwd = request.data.get("pwd")
-        user = auth.authenticate(request, username=login, password=pwd)
-        if user is not None:
-            token, flag = Token.objects.get_or_create(user=user)
-            return Response({"token": token.__str__()}, status=status.HTTP_201_CREATED)
-        return Response({}, status=status.HTTP_400_BAD_REQUEST)
+from django.contrib.auth import login, logout
 
 
 class Registration(APIView):
@@ -60,4 +50,31 @@ class Activation(APIView):
             user.save()
             return Response("Registration completed successfully", status=status.HTTP_202_ACCEPTED)
         return Response("User does not exist or token is incorrect", status=status.HTTP_400_BAD_REQUEST)
+
+
+class LoginAPI(APIView):
+    def post(self, request):
+        user = auth.authenticate(
+            request,
+            username=request.data['username'],
+            password=request.data['password']
+        )
+        if user is not None:
+            login(request, user)
+            token, flag = Token.objects.get_or_create(user=user)
+            send_mail(
+                'Hello from eventmaster! Here is your access token ',
+                f'Token:  {token}',
+                settings.EMAIL_HOST_USER,
+                [user.email]
+            )
+            return Response({}, status=status.HTTP_200_OK)
+        return Response("Invalid username or password", status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogoutAPI(APIView):
+    def post(self, request):
+        logout(request)
+        return Response({}, status=status.HTTP_200_OK)
+
 

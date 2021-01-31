@@ -19,4 +19,3 @@ class RegistrationSerializer(serializers.ModelSerializer):
         self.user.save()
         return self.user
 
-
