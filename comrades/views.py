@@ -6,6 +6,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from comrades.models import CustomUser
 from comrades.serializers import RegistrationSerializer
 from django.conf import settings
 
@@ -26,23 +27,37 @@ class Registration(APIView):
         serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            # token получаем по урлу (см jupiter)
 
             webtoken = default_token_generator.make_token(user=serializer.user)
+            activation_link = f"http://127.0.0.1:8000/comrades/activation/{webtoken}"
             if serializer.user is not None:
-                # test mail without url
                 send_mail(
-                    'hello ',
-                    f'test {webtoken}',
+                    'Hello from eventmaster! To complete registration follow the link below.',
+                    f'Activation link:  {activation_link}',
                     settings.EMAIL_HOST_USER,
                     [serializer.user.email]
                 )
+                return Response(
+                    serializer.validated_data,
+                    status=status.HTTP_201_CREATED
+                )
+            # пока что пользователь сохраняется и потом мешает, даже если письмо не прошло
             return Response(
-                serializer.validated_data,
+                "Check your email permissions",
                 status=status.HTTP_201_CREATED
             )
         return Response(
             serializer.error_messages,
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class Activation(APIView):
+    def post(self, request, webtoken):
+        user = CustomUser.objects.filter(username=request.data['username'])[0]
+        if user is not None and default_token_generator.check_token(user, webtoken):
+            user.is_active = True
+            user.save()
+            return Response("Registration completed successfully", status=status.HTTP_202_ACCEPTED)
+        return Response("User does not exist or token is incorrect", status=status.HTTP_400_BAD_REQUEST)
 
