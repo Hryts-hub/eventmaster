@@ -21,7 +21,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         username = attrs['username']
         if CustomUser.objects.filter(email=email).exists():
             raise serializers.ValidationError({f'{email}', 'This email is already in use'})
-        if username.find("@"):
+        if username.find("@") != -1:
             raise serializers.ValidationError({f'{username}', 'This username looks like email'})
         return super().validate(attrs)
 

@@ -65,8 +65,11 @@ class Activation(APIView):
 
 class LoginAPI(APIView):
     def post(self, request):
-        login_name = request.data['login']
-        password = request.data['password']
+        try:
+            login_name = request.data['login']
+            password = request.data['password']
+        except KeyError:
+            return Response("Invalid fieldnames", status=status.HTTP_400_BAD_REQUEST)
         try:
             user = auth.authenticate(
                 request,
@@ -82,7 +85,7 @@ class LoginAPI(APIView):
                     settings.EMAIL_HOST_USER,
                     [user.email]
                 )
-                return Response("You are +", status=status.HTTP_200_OK)
+                return Response(f"{token}", status=status.HTTP_200_OK)
 
             email = CustomUser.objects.filter(username=login_name)[0].email
             user = auth.authenticate(
@@ -102,6 +105,8 @@ class LoginAPI(APIView):
                 return Response({}, status=status.HTTP_200_OK)
         except KeyError:
             return Response("Invalid fieldnames", status=status.HTTP_400_BAD_REQUEST)
+        except IndexError:
+            return Response("User does not exist", status=status.HTTP_403_FORBIDDEN)
         return Response(
             "Invalid login or password, or account does not activated",
             status=status.HTTP_400_BAD_REQUEST
