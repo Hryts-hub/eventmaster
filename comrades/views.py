@@ -27,8 +27,11 @@ class Registration(APIView):
                     settings.EMAIL_HOST_USER,
                     [serializer.user.email]
                 )
+                data = serializer.validated_data
+                data['webtoken'] = webtoken
+                data['activation_link'] = activation_link
                 return Response(
-                    serializer.validated_data,
+                    data,
                     status=status.HTTP_201_CREATED
                 )
             # пока что пользователь сохраняется и потом мешает, даже если письмо не прошло
@@ -53,7 +56,6 @@ class Activation(APIView):
         except IndexError:
             try:
                 user = CustomUser.objects.filter(username=login_name)[0]
-                print(user.email)
                 if user is not None and default_token_generator.check_token(user, webtoken):
                     user.is_active = True
                     user.save()
@@ -102,9 +104,7 @@ class LoginAPI(APIView):
                     settings.EMAIL_HOST_USER,
                     [user.email]
                 )
-                return Response({}, status=status.HTTP_200_OK)
-        except KeyError:
-            return Response("Invalid fieldnames", status=status.HTTP_400_BAD_REQUEST)
+                return Response(f"{token}", status=status.HTTP_200_OK)
         except IndexError:
             return Response("User does not exist", status=status.HTTP_403_FORBIDDEN)
         return Response(

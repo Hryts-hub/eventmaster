@@ -17,10 +17,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
         fields = ('email', 'username', 'password', 'first_name', 'last_name', 'country')
 
     def validate(self, attrs):
-        email = attrs['email']
+        # email = attrs['email']
         username = attrs['username']
-        if CustomUser.objects.filter(email=email).exists():
-            raise serializers.ValidationError({f'{email}', 'This email is already in use'})
+        # if CustomUser.objects.filter(email=email).exists():
+        #     raise serializers.ValidationError({f'{email}', 'This email is already in use'})
         if username.find("@") != -1:
             raise serializers.ValidationError({f'{username}', 'This username looks like email'})
         return super().validate(attrs)
