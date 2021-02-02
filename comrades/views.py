@@ -20,6 +20,7 @@ class Registration(APIView):
 
             webtoken = default_token_generator.make_token(user=serializer.user)
             activation_link = f"http://127.0.0.1:8000/comrades/activation/{webtoken}"
+            # print(request.build_absolute_uri("http://127.0.0.1:8000/"))
             if serializer.user is not None:
                 send_mail(
                     'Hello from eventmaster! To complete registration follow the link below.',
@@ -35,6 +36,7 @@ class Registration(APIView):
                     status=status.HTTP_201_CREATED
                 )
             # пока что пользователь сохраняется и потом мешает, даже если письмо не прошло
+            # страна не сохраняется ((
         return Response(
             serializer.error_messages,
             status=status.HTTP_400_BAD_REQUEST

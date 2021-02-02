@@ -1,15 +1,16 @@
+from django.forms import CharField
 from rest_framework import serializers
-from comrades.models import CustomUser  #,Country
+from comrades.models import CustomUser, Country
 
 
-# class CountrySerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Country
-#         fields = ['country']
+class CountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = '__all__'
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
-    # country = CountrySerializer()
+    country = CountrySerializer(read_only=True)
     user = None
 
     class Meta:
@@ -29,9 +30,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         self.user = CustomUser.objects.create_user(**validated_data)
         return self.user
 
-    def save(self, **kwargs):
-        super().save(**kwargs)
-        self.user.is_active = False
-        self.user.save()
+    def save(self):
+        super().save(is_active=False)
         return self.user
 

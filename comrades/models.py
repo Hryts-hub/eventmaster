@@ -5,16 +5,16 @@ from django.contrib.auth.models import AbstractUser
 
 
 class Country(models.Model):
-    country = models.CharField(primary_key=True, max_length=100)
+    country_name = models.CharField(primary_key=True, max_length=30)
 
     def __str__(self):
-        return f"{self.country}"
+        return self.country_name
 
 
 class CustomUser(AbstractUser):
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True, blank=True)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True, blank=True, related_name="users_country")
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     email = models.EmailField(unique=True)
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']

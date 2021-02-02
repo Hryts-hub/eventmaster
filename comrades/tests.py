@@ -16,9 +16,6 @@ class RestTest(APITestCase):
             first_name="pedro",
             last_name="pedro",
             )
-        # self.user = CustomUser.objects.get(
-        #     email="bbpedro@gmail.com"
-        # )
 
     def test_registration(self):
         url = reverse('registration')
@@ -29,7 +26,7 @@ class RestTest(APITestCase):
             'password': "useruser",
             'first_name': "pedro",
             'last_name': "pedro",
-            'country': "",
+            'country': "Belarus",
         }
         # invalid field name
         data1 = {
