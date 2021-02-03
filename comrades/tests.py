@@ -19,14 +19,14 @@ class RestTest(APITestCase):
 
     def test_registration(self):
         url = reverse('registration')
-        # valid data
+        # valid data --> but if "country" not empty - errors, but real registration is OK
         data = {
-            'email': "pedro@gmail.com",
-            'username': "pedro",
-            'password': "useruser",
-            'first_name': "pedro",
-            'last_name': "pedro",
-            'country': "Belarus",
+            "email": "pedro@gmail.com",
+            "username": "pedro",
+            "password": "useruser",
+            "first_name": "pedro",
+            "last_name": "pedro",
+            "country": "",
         }
         # invalid field name
         data1 = {
@@ -71,7 +71,7 @@ class RestTest(APITestCase):
             'country': "",
         }
 
-        response = self.client.get(url, format='json')
+        response = self.client.get(url, )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         response = self.client.post(
             path=url,
@@ -103,12 +103,14 @@ class RestTest(APITestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # print("MY TEST")
         response = self.client.post(
             path=url,
             data=dumps(data),
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # print("END MY TEST")
         # try create user, that already exists
         response = self.client.post(
             path=url,
@@ -116,6 +118,7 @@ class RestTest(APITestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        print('reg')
 
     def test_activation(self):
         url = reverse('registration')
@@ -161,7 +164,7 @@ class RestTest(APITestCase):
             "lo0gin": "pedrooooo",
             "webtoken": webtoken
         }
-        response = self.client.get(activation_link, format='json')
+        response = self.client.get(activation_link, )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         response = self.client.post(
             path=activation_link,
@@ -205,6 +208,7 @@ class RestTest(APITestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        print('act')
 
     def test_login(self):
         url = reverse("login")
@@ -237,7 +241,7 @@ class RestTest(APITestCase):
             'login': "bbpedro",
             'password': "useruser",
         }
-        response = self.client.get(url, format='json')
+        response = self.client.get(url, )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         response = self.client.post(
             path=url,
@@ -275,13 +279,15 @@ class RestTest(APITestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        print('login')
 
     def test_logout(self):
         url = reverse("logout")
-        response = self.client.get(url, format='json')
+        response = self.client.get(url, )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         response = self.client.post(path=url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        print("logout")
 
     def test_token(self):
         url = reverse("login")
@@ -299,6 +305,7 @@ class RestTest(APITestCase):
             Token.objects.get(user=self.user).__str__(),
             response.json()
         )
+        print('token')
 
 
 # coverage run --source="." manage.py test

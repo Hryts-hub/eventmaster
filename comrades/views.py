@@ -14,13 +14,17 @@ from django.contrib.auth import login, logout
 
 class Registration(APIView):
     def post(self, request):
-        serializer = RegistrationSerializer(data=request.data)
+        data = request.data
+        serializer = RegistrationSerializer(data=data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
 
             webtoken = default_token_generator.make_token(user=serializer.user)
+            # for test link looks like that, otherwise http://testserver/comrades/registration/ ...
             activation_link = f"http://127.0.0.1:8000/comrades/activation/{webtoken}"
             # print(request.build_absolute_uri("http://127.0.0.1:8000/"))
+            # print(request.build_absolute_uri(""))
+            # print(request.build_absolute_uri(request.path))
             if serializer.user is not None:
                 send_mail(
                     'Hello from eventmaster! To complete registration follow the link below.',
@@ -29,14 +33,18 @@ class Registration(APIView):
                     [serializer.user.email]
                 )
                 data = serializer.validated_data
+                # for tests
                 data['webtoken'] = webtoken
+                # for tests
                 data['activation_link'] = activation_link
+                # if return Response(data ... error --> data not json serializable
+                # to avoid this problem --> data['country'] = '', in base correct data
+                data['country'] = ''
                 return Response(
                     data,
                     status=status.HTTP_201_CREATED
                 )
-            # пока что пользователь сохраняется и потом мешает, даже если письмо не прошло
-            # страна не сохраняется ((
+            # пока что пользователь сохраняется и потом мешает, если письмо не прошло
         return Response(
             serializer.error_messages,
             status=status.HTTP_400_BAD_REQUEST
