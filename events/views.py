@@ -89,7 +89,7 @@ class StatisticMonth(APIView):
     def get(self, request):
         data = request.data
         month = data['month']
-        events = Events.objects.filter(user=request.user)#.order_by("date_event", "start_time")
+        events = Events.objects.filter(user=request.user)
         data = dict()
 
         date_list = []
