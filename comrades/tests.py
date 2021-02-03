@@ -302,7 +302,7 @@ class RestTest(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            Token.objects.get(user=self.user).__str__(),
+            Token.objects.get(,.__str__(),
             response.json()
         )
         print('token')
