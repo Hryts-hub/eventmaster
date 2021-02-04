@@ -5,7 +5,8 @@ from django.contrib.auth.models import AbstractUser
 
 
 class Country(models.Model):
-    country_name = models.CharField(primary_key=True, max_length=30)
+    slug = models.SlugField(primary_key=True, verbose_name="slug")
+    country_name = models.CharField(max_length=30)
 
     def __str__(self):
         return self.country_name
