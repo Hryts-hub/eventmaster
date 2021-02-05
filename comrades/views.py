@@ -32,16 +32,18 @@ class Registration(APIView):
                     settings.EMAIL_HOST_USER,
                     [serializer.user.email]
                 )
-                data = serializer.validated_data
+                data1 = serializer.validated_data
                 # for tests
-                data['webtoken'] = webtoken
+                data1['webtoken'] = webtoken
                 # for tests
-                data['activation_link'] = activation_link
-                # if return Response(data ... error --> data not json serializable
-                # to avoid this problem --> data['country'] = '', in base correct data
-                data['country'] = ''
+                data1['activation_link'] = activation_link
+                # if return Response(data ... error --> data1 not json serializable
+                # to avoid this problem --> data1['country'] = '' or data1['country'] = data['country'],
+                # in base correct data
+                # data['country'] = ''
+                data1['country'] = data['country']
                 return Response(
-                    data,
+                    data1,
                     status=status.HTTP_201_CREATED
                 )
             # пока что пользователь сохраняется и потом мешает, если письмо не прошло

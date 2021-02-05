@@ -2,7 +2,7 @@ from rest_framework.authentication import TokenAuthentication, SessionAuthentica
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from events.models import Events
+from events.models import Events, Holidays
 from events.serializers import EventSerializer
 from rest_framework.response import Response
 from rest_framework import status
@@ -59,7 +59,8 @@ class StatisticByUser(APIView):
 
 
 class StatisticDay(APIView):
-    # by token only
+    # by token only,
+    # to test SessionAuthentication  date_event = "2021-05-05"
     authentication_classes = [TokenAuthentication]
     # authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -82,6 +83,7 @@ class StatisticDay(APIView):
 
 class StatisticMonth(APIView):
     # by token only
+    # to test SessionAuthentication  month = "2021-05"
     authentication_classes = [TokenAuthentication]
     # authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
@@ -111,4 +113,66 @@ class StatisticMonth(APIView):
                 ev[i] = [start_time, end_time, event_name]
                 event_list.append(ev[i])
             data[str(date)] = event_list
+        return Response(data, status=status.HTTP_200_OK)
+
+# to get full list of holidays uncomment the code below and path in urls.py
+
+# class ListHolidays(APIView):
+#     authentication_classes = [TokenAuthentication]
+#     # authentication_classes = [SessionAuthentication]
+#     permission_classes = [IsAuthenticated]
+#
+#     def get(self, request):
+#         user = request.user
+#         country = user.country
+#         holidays = Holidays.objects.filter(country=country).order_by("date")
+#         data = dict()
+#         i = 0
+#         for day in holidays:
+#             holiday = day.holiday.split(': ')[1]
+#             date = day.date
+#             duration = day.duration.split(',')[0]
+#             description = day.description
+#             i += 1
+#             data[i] = [date, holiday, duration, description]
+#         return Response(data, status=status.HTTP_200_OK)
+
+
+class HolydaysMonth(APIView):
+    # by token only
+    # to test SessionAuthentication  month = "2021-05"
+    authentication_classes = [TokenAuthentication]
+    # authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        data = request.data
+        month = data['month']
+        # month = "2021-05" # for test by SessionAuthentication
+        user = request.user
+        country = user.country
+        holidays = Holidays.objects.filter(country=country)
+        data = dict()
+        d = 0
+        date_list = []
+        for day in holidays:
+            date = day.date
+            if str(date).startswith(month):
+                date_list.append(date)
+        list(set(date_list)).sort()
+        for date in date_list:
+            holiday_per_day = holidays.filter(date=date).order_by("date")
+            i = 0
+            d += 1
+            holiday_list = []
+            holy = dict()
+            for day_holiday in holiday_per_day:
+                holiday = day_holiday.holiday.split(': ')[1]
+                date = day_holiday.date
+                duration = day_holiday.duration.split(',')[0]
+                description = day_holiday.description
+                i += 1
+                holy[i] = [i, date, duration, holiday, description]
+                holiday_list.append(holy[i])
+            data[str(d)] = holiday_list
         return Response(data, status=status.HTTP_200_OK)

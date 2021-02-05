@@ -27,5 +27,3 @@ class Command(BaseCommand):
 
         Country.objects.bulk_create(country_fields)
 
-        # for country in tqdm(all_arr):
-        #     Country.objects.create(name=country)

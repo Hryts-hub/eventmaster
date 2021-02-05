@@ -1,14 +1,14 @@
-from django.forms import CharField
 from rest_framework import serializers
-from comrades.models import CustomUser, Country
+from comrades.models import CustomUser
+# from comrades.models import Country
+# from django.forms import CharField
 
-# from django.db import models
 
-
-class CountrySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Country
-        fields = '__all__'
+# class CountrySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Country
+#         # fields = '__all__'
+#         fields = ['country_name']
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
