@@ -37,16 +37,14 @@ class Registration(APIView):
                 data1['webtoken'] = webtoken
                 # for tests
                 data1['activation_link'] = activation_link
-                # if return Response(data ... error --> data1 not json serializable
-                # to avoid this problem --> data1['country'] = '' or data1['country'] = data['country'],
+                # if return Response(data1 ... error --> data1 not json serializable
+                # to avoid this problem --> data1['country'] = data['country'],
                 # in base correct data
-                # data['country'] = ''
                 data1['country'] = data['country']
                 return Response(
                     data1,
                     status=status.HTTP_201_CREATED
                 )
-            # пока что пользователь сохраняется и потом мешает, если письмо не прошло
         return Response(
             serializer.error_messages,
             status=status.HTTP_400_BAD_REQUEST

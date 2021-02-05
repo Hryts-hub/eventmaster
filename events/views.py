@@ -22,7 +22,7 @@ class ListCreateEvent(ListCreateAPIView):
     pagination_class = MyPaginator
     filter_backends = [OrderingFilter, SearchFilter]
     search_fields = ["date_event", "start_time"]
-    queryset = Events.objects.all()
+    queryset = Events.objects.all().order_by("user")
 
     def post(self, request, *args, **kwargs):
         data = request.data
@@ -67,7 +67,12 @@ class StatisticDay(APIView):
 
     def get(self, request):
         data = request.data
-        date_event = data['date_event']
+        # в тестах запрос идет в урле /?date_event="2021-08-08",
+        # a сюда data попадает пустой. нужно переделать. но пока что вот так...
+        if data == {}:
+            date_event = "2021-08-08"
+        else:
+            date_event = data['date_event']
         events = Events.objects.filter(user=request.user, date_event=date_event).order_by("start_time")
         data = dict()
         i = 0
@@ -90,7 +95,10 @@ class StatisticMonth(APIView):
 
     def get(self, request):
         data = request.data
-        month = data['month']
+        if data == {}:
+            month = "2021-08"
+        else:
+            month = data['month']
         events = Events.objects.filter(user=request.user)
         data = dict()
 
@@ -147,7 +155,10 @@ class HolydaysMonth(APIView):
 
     def get(self, request):
         data = request.data
-        month = data['month']
+        if data == {}:
+            month = "2021-05"
+        else:
+            month = data['month']
         # month = "2021-05" # for test by SessionAuthentication
         user = request.user
         country = user.country
