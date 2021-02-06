@@ -18,6 +18,7 @@ class RestTest(APITestCase):
             password="useruser",
             first_name="pedro",
             last_name="pedro",
+            country=Country.objects.get(slug="belarus")
             )
 
     def test_registration(self):
@@ -136,7 +137,7 @@ class RestTest(APITestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        print('reg')
+        print('test_registration')
 
     def test_activation(self):
         url = reverse('registration')
@@ -147,7 +148,7 @@ class RestTest(APITestCase):
             'password': "useruser",
             'first_name': "pedro",
             'last_name': "pedro",
-            'country': "",
+            'country': "belarus",
         }
         response = self.client.post(
             path=url,
@@ -226,7 +227,7 @@ class RestTest(APITestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        print('act')
+        print('test_activation')
 
     def test_login(self):
         url = reverse("login")
@@ -297,7 +298,7 @@ class RestTest(APITestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        print('login')
+        print('test_login')
 
     def test_logout(self):
         url = reverse("logout")
@@ -305,7 +306,7 @@ class RestTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         response = self.client.post(path=url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        print("logout")
+        print("test_logout")
 
     def test_token(self):
         url = reverse("login")
@@ -323,7 +324,7 @@ class RestTest(APITestCase):
             Token.objects.get(user=self.user).__str__(),
             response.json()
         )
-        print('token')
+        print('test_token')
 
 
 # coverage run --source="." manage.py test

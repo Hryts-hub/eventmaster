@@ -67,10 +67,12 @@ class StatisticDay(APIView):
 
     def get(self, request):
         data = request.data
-        # в тестах запрос идет в урле /?date_event="2021-08-08",
-        # a сюда data попадает пустой. нужно переделать. но пока что вот так...
+        # в тестах запрос идет в урле
+        # GET '/events/statistic_day/?date_event=2021-08-08',
+        # a сюда data попадает пустой.
         if data == {}:
-            date_event = "2021-08-08"
+            date_event_str = request.META['QUERY_STRING']
+            date_event = date_event_str.split("=")[1]
         else:
             date_event = data['date_event']
         events = Events.objects.filter(user=request.user, date_event=date_event).order_by("start_time")
@@ -96,7 +98,9 @@ class StatisticMonth(APIView):
     def get(self, request):
         data = request.data
         if data == {}:
-            month = "2021-08"
+            # month = "2021-05" #  test
+            month_str = request.META['QUERY_STRING']
+            month = month_str.split("=")[1]
         else:
             month = data['month']
         events = Events.objects.filter(user=request.user)
@@ -156,10 +160,12 @@ class HolydaysMonth(APIView):
     def get(self, request):
         data = request.data
         if data == {}:
-            month = "2021-05"
+            # month = "2021-05"  #  test
+            month_str = request.META['QUERY_STRING']
+            month = month_str.split("=")[1]
+            # print(month)
         else:
             month = data['month']
-        # month = "2021-05" # for test by SessionAuthentication
         user = request.user
         country = user.country
         holidays = Holidays.objects.filter(country=country)

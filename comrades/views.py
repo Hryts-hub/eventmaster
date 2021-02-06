@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from comrades.models import CustomUser
 from comrades.serializers import RegistrationSerializer
 from django.conf import settings
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, authenticate
 
 
 class Registration(APIView):
@@ -100,7 +100,12 @@ class LoginAPI(APIView):
                 return Response(f"{token}", status=status.HTTP_200_OK)
 
             email = CustomUser.objects.filter(username=login_name)[0].email
-            user = auth.authenticate(
+            # user = auth.authenticate(
+            #     request,
+            #     email=email,
+            #     password=request.data['password']
+            # )
+            user = authenticate(
                 request,
                 email=email,
                 password=request.data['password']

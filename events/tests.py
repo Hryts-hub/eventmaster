@@ -1,11 +1,9 @@
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.test import APITestCase, RequestsClient, APIClient
+from rest_framework.test import APITestCase, APIClient
 from django.urls import reverse
 from rest_framework import status
-from json import dumps
 from rest_framework.authtoken.models import Token
 from comrades.models import CustomUser, Country
-from events.models import Events
+from events.models import Events, Holidays
 
 
 class RestTest(APITestCase):
@@ -14,14 +12,24 @@ class RestTest(APITestCase):
             slug="belarus",
             country_name="Belarus",
         )
-        # нужно сделать юзера с страной
+        # нужен праздник со страной, внимательно с полями, они д.б. как в базе, иначе код упадет
+        Holidays.objects.create(
+            holiday="Belarus: test1",
+            country=Country.objects.get(slug="belarus"),
+            date="2021-05-09",
+            duration="1 day, ",
+            description="models.TextField(blank=True)"
+        )
+        # нужно сделать юзера со страной
         self.user = CustomUser.objects.create_user(
             email="bbpedro@gmail.com",
             username="bbpedro",
             password="useruser",
             first_name="pedro",
             last_name="pedro",
+            country=Country.objects.get(slug="belarus")
             )
+
         url = reverse("login")
         # valid data, login by email
         data5 = {
@@ -37,7 +45,8 @@ class RestTest(APITestCase):
         self.token = Token.objects.get(user__username='bbpedro')
         self.headers = {"Authorization": f"Token {self.token}"}
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-
+        # events for tests
+        # "test EVENT-1"
         url = reverse("list_create_event")
         data = {
             "event": "test EVENT-1",
@@ -51,7 +60,34 @@ class RestTest(APITestCase):
             data=data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # self.test_response1 = response.data
+        # "test EVENT-2"
+        url = reverse("list_create_event")
+        data = {
+            "event": "test EVENT-2",
+            "date_event": "2021-08-08",
+            "start_time": "13:00",
+            "end_time": "16:00",
+        }
+        response = self.client.post(
+            url,
+            headers=self.headers,
+            data=data
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # "test EVENT-3"
+        url = reverse("list_create_event")
+        data = {
+            "event": "test EVENT-3",
+            "date_event": "2021-08-07",
+            "start_time": "13:00",
+            "end_time": "16:00",
+        }
+        response = self.client.post(
+            url,
+            headers=self.headers,
+            data=data
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     # def test_token(self):
     #     print(self.token)
@@ -75,6 +111,7 @@ class RestTest(APITestCase):
             data=data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        print("test_list_create_event")
 
     def test_statistic_by_user(self):
         url = reverse("statistic_by_user")
@@ -83,6 +120,8 @@ class RestTest(APITestCase):
             headers=self.headers,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 3)
+        print("test_statistic_by_user")
 
     def test_statistic_day(self):
         url = reverse("statistic_day")
@@ -95,6 +134,8 @@ class RestTest(APITestCase):
             data=data,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        print("test_statistic_day")
 
     def test_statistic_month(self):
         url = reverse("statistic_month")
@@ -107,9 +148,11 @@ class RestTest(APITestCase):
             data=data,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        print("test_statistic_month")
 
-    def holidays_month(self):
-        # у тестового юзера пока что нет страны. так что...
+    def test_holidays_month(self):
+        # holiday in belarus 2021-05-09
         url = reverse("holidays_month")
         data = {
             "month": "2021-05",
@@ -119,5 +162,8 @@ class RestTest(APITestCase):
             headers=self.headers,
             data=data,
         )
+        # print(len(response.data))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        print("test_holidays_month")
 
