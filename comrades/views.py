@@ -6,7 +6,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from comrades.models import CustomUser
+from comrades.models import CustomUser, Country
 from comrades.serializers import RegistrationSerializer
 from django.conf import settings
 from django.contrib.auth import login, logout, authenticate
@@ -15,6 +15,14 @@ from django.contrib.auth import login, logout, authenticate
 class Registration(APIView):
     def post(self, request):
         data = request.data
+        # try:
+        #     country_m = Country.objects.get(slug=request.data["country"])
+        #     print(country_m)
+        #     print(country_m.slug)
+        #     print(2)
+        # except Exception as e:
+        #     print(e)
+        #     pass
         serializer = RegistrationSerializer(data=data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()

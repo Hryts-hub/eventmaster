@@ -83,7 +83,6 @@ class RestTest(APITestCase):
             'last_name': "pedro",
             'country': "asdfdsfafd",
         }
-
         response = self.client.get(url, )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         response = self.client.post(
