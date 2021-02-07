@@ -26,14 +26,7 @@ SECRET_KEY = '5qn64_joa#$@(1e-u1xy%34=x%e2ur(e@ecwxj0%ofr#(kvb5d'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-#
-# REST_FRAMEWORK = {
-#    'DEFAULT_AUTHENTICATION_CLASSES': [
-#        'rest_framework.authentication.TokenAuthentication',
-#        'rest_framework.authentication.SessionAuthentication',
-#    ],
-# }
-# Application definition
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
