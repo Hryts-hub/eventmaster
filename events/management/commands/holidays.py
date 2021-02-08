@@ -37,8 +37,8 @@ class Command(BaseCommand):
                     Holidays.objects.create(
                         holiday=holiday_obj.name,
                         country=Country.objects.get(country_name=holiday_obj.location),
-                        # date=holiday_obj.begin.date(),
-                        date=holiday_obj.begin.format("YYYY-MM-DD"),
+                        date=holiday_obj.begin.date(),
+                        # date=holiday_obj.begin.format("YYYY-MM-DD"),
                         duration=holiday_obj.duration,
                         description=holiday_obj.description,
                         )

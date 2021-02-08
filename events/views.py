@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import OrderingFilter, SearchFilter
+import datetime
 
 
 class MyPaginator(PageNumberPagination):
@@ -127,7 +128,7 @@ class StatisticMonth(APIView):
             data[str(date)] = event_list
         return Response(data, status=status.HTTP_200_OK)
 
-# to get full list of holidays uncomment the code below and path in urls.py
+# to get full list of holidays for user uncomment the code below and path in urls.py
 
 # class ListHolidays(APIView):
 #     authentication_classes = [TokenAuthentication]

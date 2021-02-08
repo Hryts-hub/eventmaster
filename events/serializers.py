@@ -16,7 +16,5 @@ class EventSerializer(ModelSerializer):
 
     class Meta:
         model = Events
-        fields = ('event', 'date_event', 'start_time', 'end_time', 'user')
+        fields = ('event', 'date_event', 'start_time', 'end_time', 'user', 'remind')
 
-    def save(self, user):
-        super().save(user=user)

@@ -26,7 +26,7 @@ SECRET_KEY = '5qn64_joa#$@(1e-u1xy%34=x%e2ur(e@ecwxj0%ofr#(kvb5d'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -137,3 +137,30 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_PASSWORD = "qazxcv42"
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://cache://127.0.0.1:6379/1"
+    }
+}
+
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+CELERY_BROKER_URL = 'redis://cache:6379'
+CELERY_RESULT_BACKEND = 'redis://cache:6379'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+# CELERY_BEAT_SCHEDULE = {
+    # "task_one": {
+    #     "task": "manager.tasks.just_taks",
+    #     "schedule": 3.0,
+    # },
+#     "task_two": {
+#         "task": "manager.tasks.git_info",
+#         "schedule": (45 * 60),
+#     },
+# }

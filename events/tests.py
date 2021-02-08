@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from comrades.models import CustomUser, Country
 from events.models import Events, Holidays
+from datetime import timedelta
 
 
 class RestTest(APITestCase):
@@ -12,7 +13,7 @@ class RestTest(APITestCase):
             slug="belarus",
             country_name="Belarus",
         )
-        # нужен праздник со страной, внимательно с полями, они д.б. как в базе, иначе код упадет
+        # праздник с страной, внимательно с полями, они д.б. как в базе, иначе код упадет
         Holidays.objects.create(
             holiday="Belarus: test1",
             country=Country.objects.get(slug="belarus"),
@@ -20,7 +21,7 @@ class RestTest(APITestCase):
             duration="1 day, ",
             description="models.TextField(blank=True)"
         )
-        # нужно сделать юзера со страной
+        # юзер с страной
         self.user = CustomUser.objects.create_user(
             email="bbpedro@gmail.com",
             username="bbpedro",
@@ -45,7 +46,9 @@ class RestTest(APITestCase):
         self.token = Token.objects.get(user__username='bbpedro')
         self.headers = {"Authorization": f"Token {self.token}"}
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
         # events for tests
+
         # "test EVENT-1"
         url = reverse("list_create_event")
         data = {
@@ -53,6 +56,7 @@ class RestTest(APITestCase):
             "date_event": "2021-08-08",
             "start_time": "11:00",
             "end_time": "12:00",
+            "remind": timedelta(seconds=3600),
         }
         response = self.client.post(
             url,
@@ -67,6 +71,7 @@ class RestTest(APITestCase):
             "date_event": "2021-08-08",
             "start_time": "13:00",
             "end_time": "16:00",
+            "remind": timedelta(days=1),
         }
         response = self.client.post(
             url,
@@ -81,6 +86,7 @@ class RestTest(APITestCase):
             "date_event": "2021-08-07",
             "start_time": "13:00",
             "end_time": "16:00",
+            "remind": timedelta(weeks=1),
         }
         response = self.client.post(
             url,
@@ -88,9 +94,6 @@ class RestTest(APITestCase):
             data=data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-    # def test_token(self):
-    #     print(self.token)
 
     def test_list_create_event(self):
         url = reverse("list_create_event")
@@ -104,6 +107,7 @@ class RestTest(APITestCase):
             "date_event": "2021-08-08",
             "start_time": "11:00",
             "end_time": "12:00",
+            "remind": "",
         }
         response = self.client.post(
             url,
