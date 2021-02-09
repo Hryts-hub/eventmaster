@@ -20,6 +20,7 @@ class ListCreateEvent(ListCreateAPIView):
     # authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = EventSerializer
+    # this code for testing with SessionAuthentication
     pagination_class = MyPaginator
     filter_backends = [OrderingFilter, SearchFilter]
     search_fields = ["date_event", "start_time"]
@@ -128,7 +129,7 @@ class StatisticMonth(APIView):
             data[str(date)] = event_list
         return Response(data, status=status.HTTP_200_OK)
 
-# to get full list of holidays for user uncomment the code below and path in urls.py
+# to get full list of holidays uncomment the code below and path in urls.py
 
 # class ListHolidays(APIView):
 #     authentication_classes = [TokenAuthentication]
@@ -164,7 +165,6 @@ class HolydaysMonth(APIView):
             # month = "2021-05"  #  test
             month_str = request.META['QUERY_STRING']
             month = month_str.split("=")[1]
-            # print(month)
         else:
             month = data['month']
         user = request.user

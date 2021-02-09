@@ -69,7 +69,7 @@ class RestTest(APITestCase):
         data = {
             "event": "test EVENT-2",
             "date_event": "2021-08-08",
-            "start_time": "13:00",
+            "start_time": "14:00",
             "end_time": "16:00",
             "remind": timedelta(days=1),
         }
@@ -84,7 +84,7 @@ class RestTest(APITestCase):
         data = {
             "event": "test EVENT-3",
             "date_event": "2021-08-07",
-            "start_time": "13:00",
+            "start_time": "15:00",
             "end_time": "16:00",
             "remind": timedelta(weeks=1),
         }

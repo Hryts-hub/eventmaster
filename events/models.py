@@ -1,10 +1,14 @@
 from django.db import models
 from datetime import timedelta
+from django.utils import timezone
 from comrades.models import CustomUser, Country
 import datetime
 
 
 class Events(models.Model):
+    # offset должено быть св-вом юзера и вписываться при регистрации, но пока что так...
+    offset = datetime.timedelta(hours=3)
+
     DO_NOT_REMIND = ""
     REMINDER = [
         (DO_NOT_REMIND, 'do not remind'),
@@ -29,6 +33,8 @@ class Events(models.Model):
         if self.remind:
             datetime_event = datetime.datetime.combine(self.date_event, self.start_time)
             self.time_to_remind = datetime_event - self.remind
+            self.time_to_remind = timezone.make_aware(self.time_to_remind)
+            self.time_to_remind = self.time_to_remind - self.offset
         super().save(**kwargs)
 
 

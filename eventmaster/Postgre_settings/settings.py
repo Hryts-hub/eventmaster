@@ -154,13 +154,14 @@ CELERY_RESULT_BACKEND = 'redis://cache:6379'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
-# CELERY_BEAT_SCHEDULE = {
-    # "task_one": {
-    #     "task": "manager.tasks.just_taks",
-    #     "schedule": 3.0,
-    # },
-#     "task_two": {
-#         "task": "manager.tasks.git_info",
-#         "schedule": (45 * 60),
-#     },
-# }
+CELERY_BEAT_SCHEDULE = {
+    "task_remind_event": {
+        "task": "events.tasks.remind_event",
+        "schedule": (5.0 * 60),
+    },
+    "task_refresh_holidays": {
+        "task": "events.tasks.refresh_holidays",
+        "schedule": ((30*24*30) * 60),
+        # "schedule": (20 * 60),
+    },
+}
