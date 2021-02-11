@@ -15,24 +15,17 @@ from django.contrib.auth import login, logout, authenticate
 class Registration(APIView):
     def post(self, request):
         data = request.data
-        # try:
-        #     country_m = Country.objects.get(slug=request.data["country"])
-        #     print(country_m)
-        #     print(country_m.slug)
-        #     print(2)
-        # except Exception as e:
-        #     print(e)
-        #     pass
         serializer = RegistrationSerializer(data=data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
 
             webtoken = default_token_generator.make_token(user=serializer.user)
             # for test link looks like that, otherwise http://testserver/comrades/registration/ ...
-            activation_link = f"http://127.0.0.1:8000/comrades/activation/{webtoken}"
-            # print(request.build_absolute_uri("http://127.0.0.1:8000/"))
-            # print(request.build_absolute_uri(""))
-            # print(request.build_absolute_uri(request.path))
+            if request.build_absolute_uri("") == "https://blackdesert.ololosha.xyz/comrades/registration/" or \
+                    request.build_absolute_uri("") == "http://34.66.82.243/comrades/registration/":
+                activation_link = f"https://blackdesert.ololosha.xyz/comrades/activation/{webtoken}"
+            else:
+                activation_link = f"http://127.0.0.1:8000/comrades/activation/{webtoken}"
             if serializer.user is not None:
                 send_mail(
                     'Hello from eventmaster! To complete registration follow the link below.',
