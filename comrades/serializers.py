@@ -1,23 +1,19 @@
 from rest_framework import serializers
+from rest_framework.fields import CharField
 from comrades.models import CustomUser
-# from comrades.models import Country
-# from django.forms import CharField
 
 
-# class CountrySerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Country
-#         # fields = '__all__'
-#         fields = ['country_name']
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('username', 'email', 'first_name', 'last_name', 'country')
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
-    user = None
 
     class Meta:
         model = CustomUser
-        fields = (
-            'email', 'username', 'password', 'first_name', 'last_name', 'country')
+        fields = ('email', 'username', 'first_name', 'last_name', 'password', 'country')
 
     def validate(self, attrs):
         username = attrs['username']
@@ -32,3 +28,19 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def save(self):
         self.user = super().save(is_active=False)
         return self.user
+
+
+class ActivationSerializer(serializers.ModelSerializer):
+    login = CharField(max_length=150, help_text='Enter email or username')
+
+    class Meta:
+        model = CustomUser
+        fields = ('login',)
+
+
+class LoginSerializer(serializers.ModelSerializer):
+    login = CharField(max_length=150, help_text='Enter email or username')
+
+    class Meta:
+        model = CustomUser
+        fields = ('login', 'password')

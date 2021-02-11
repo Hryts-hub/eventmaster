@@ -3,30 +3,30 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from comrades.models import CustomUser, Country
-from comrades.serializers import RegistrationSerializer
+from comrades.models import CustomUser
+from comrades.serializers import RegistrationSerializer, UserSerializer, ActivationSerializer, LoginSerializer
 from django.conf import settings
 from django.contrib.auth import login, logout, authenticate
 
 
-class Registration(APIView):
+class Registration(GenericAPIView):
+    serializer_class = RegistrationSerializer
+
     def post(self, request):
-        data = request.data
-        serializer = RegistrationSerializer(data=data)
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-
             webtoken = default_token_generator.make_token(user=serializer.user)
-            # for test link looks like that, otherwise http://testserver/comrades/registration/ ...
-            print(request.build_absolute_uri(""))
-            # if request.build_absolute_uri("") == "https://blackdesert.ololosha.xyz/comrades/registration/" or \
-            #         request.build_absolute_uri("") == "http://34.66.82.243/comrades/registration/":
+
             activation_link = f"https://blackdesert.ololosha.xyz/comrades/activation/{webtoken}"
-            # else:
-            #     activation_link = f"http://127.0.0.1:8000/comrades/activation/{webtoken}"
+
+            # activation_link = f"http://127.0.0.1:8000/comrades/activation/{webtoken}"
+            # request.build_absolute_uri("") --> http://127.0.0.1:8000/comrades/registration/ <-- even on prod
+
             if serializer.user is not None:
                 send_mail(
                     'Hello from eventmaster! To complete registration follow the link below.',
@@ -34,17 +34,16 @@ class Registration(APIView):
                     settings.EMAIL_HOST_USER,
                     [serializer.user.email]
                 )
-                data1 = serializer.validated_data
-                # for tests
-                data1['webtoken'] = webtoken
-                # for tests
-                data1['activation_link'] = activation_link
-                # if return Response(data1 ... error --> data1 not json serializable
-                # to avoid this problem --> data1['country'] = data['country'],
-                # in base correct data
-                data1['country'] = data['country']
+                user = serializer.user
+                # webtoken and activation_link in Response for testing
+                # (They may be excluded from Response, and test_activation must be commented out) -
+                # activation will work properly
                 return Response(
-                    data1,
+                    {
+                        "user": UserSerializer(user, context=self.get_serializer_context()).data,
+                        "webtoken": webtoken,
+                        "activation_link": activation_link
+                    },
                     status=status.HTTP_201_CREATED
                 )
         return Response(
@@ -53,12 +52,14 @@ class Registration(APIView):
         )
 
 
-class Activation(APIView):
+class Activation(GenericAPIView):
+    serializer_class = ActivationSerializer
+
     def post(self, request, webtoken):
-        try:
-            login_name = request.data['login']
-        except KeyError:
-            return Response("Invalid fieldnames", status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            login_name = serializer.data['login']
+
         try:
             user = CustomUser.objects.filter(email=login_name)[0]
             if user is not None and default_token_generator.check_token(user, webtoken):
@@ -73,17 +74,19 @@ class Activation(APIView):
                     user.save()
                     return Response("Registration by username completed successfully", status=status.HTTP_202_ACCEPTED)
             except IndexError:
-                return Response("This email address does not registered", status=status.HTTP_400_BAD_REQUEST)
-        return Response("Invalid data", status=status.HTTP_400_BAD_REQUEST)
+                return Response("This user is not registered", status=status.HTTP_400_BAD_REQUEST)
+        return Response("Invalid webtoken", status=status.HTTP_400_BAD_REQUEST)
 
 
-class LoginAPI(APIView):
+class LoginAPI(GenericAPIView):
+    serializer_class = LoginSerializer
+
     def post(self, request):
-        try:
-            login_name = request.data['login']
-            password = request.data['password']
-        except KeyError:
-            return Response("Invalid fieldnames", status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            login_name = serializer.data['login']
+            password = serializer.data['password']
+
         try:
             user = auth.authenticate(
                 request,
@@ -99,14 +102,17 @@ class LoginAPI(APIView):
                     settings.EMAIL_HOST_USER,
                     [user.email]
                 )
-                return Response(f"{token}", status=status.HTTP_200_OK)
+                # token in Response only for convenience, but don't need.
+                # It can be replaced easily by some other message.
+                return Response(
+                    {
+                        "token": f"{token}",
+                        "msg": "Login by email",
+                    },
+                    status=status.HTTP_200_OK
+                )
 
             email = CustomUser.objects.filter(username=login_name)[0].email
-            # user = auth.authenticate(
-            #     request,
-            #     email=email,
-            #     password=request.data['password']
-            # )
             user = authenticate(
                 request,
                 email=email,
@@ -121,11 +127,17 @@ class LoginAPI(APIView):
                     settings.EMAIL_HOST_USER,
                     [user.email]
                 )
-                return Response(f"{token}", status=status.HTTP_200_OK)
+                return Response(
+                    {
+                        "token": f"{token}",
+                        "msg": "Login by username",
+                    },
+                    status=status.HTTP_200_OK
+                )
         except IndexError:
-            return Response("User does not exist", status=status.HTTP_403_FORBIDDEN)
+            return Response("The user does not exist", status=status.HTTP_403_FORBIDDEN)
         return Response(
-            "Invalid login or password, or account does not activated",
+            "Invalid password or account is not activated",
             status=status.HTTP_400_BAD_REQUEST
         )
 

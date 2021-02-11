@@ -39,7 +39,7 @@ class RestTest(APITestCase):
             'password': "useruser",
             'first_name': "pedro",
             'last_name': "pedro",
-            'country': "",
+            'country': "belarus",
         }
         # invalid username
         data2 = {
@@ -48,7 +48,7 @@ class RestTest(APITestCase):
             'password': "useruser",
             'first_name': "pedro",
             'last_name': "pedro",
-            'country': "",
+            'country': "belarus",
         }
         # invalid email
         data3 = {
@@ -57,7 +57,7 @@ class RestTest(APITestCase):
             'password': "useruser",
             'first_name': "pedro",
             'last_name': "pedro",
-            'country': "",
+            'country': "belarus",
         }
         # invalid fields number
         data4 = {
@@ -72,7 +72,7 @@ class RestTest(APITestCase):
             'password': "useruser",
             'first_name': "pedro",
             'last_name': "",
-            'country': "",
+            'country': "belarus",
         }
         # invalid country
         data6 = {
@@ -169,17 +169,17 @@ class RestTest(APITestCase):
         }
         # invalid login
         data2 = {
-            "lo0gin": "wwwwwwwpedro@gmail.com",
+            "login": "wwwwwwwpedro@gmail.com",
             "webtoken": webtoken
         }
         # invalid webtoken
         data3 = {
-            "lo0gin": "wwwwwwwpedro@gmail.com",
+            "login": "wwwwwwwpedro@gmail.com",
             "webtoken": "12345"
         }
         # invalid login by username
         data4 = {
-            "lo0gin": "pedrooooo",
+            "login": "pedrooooo",
             "webtoken": webtoken
         }
         response = self.client.get(activation_link, )
@@ -321,7 +321,7 @@ class RestTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             Token.objects.get(user=self.user).__str__(),
-            response.json()
+            response.json()['token']
         )
         print('test_token')
 
