@@ -22,11 +22,11 @@ class Registration(APIView):
             webtoken = default_token_generator.make_token(user=serializer.user)
             # for test link looks like that, otherwise http://testserver/comrades/registration/ ...
             print(request.build_absolute_uri(""))
-            if request.build_absolute_uri("") == "https://blackdesert.ololosha.xyz/comrades/registration/" or \
-                    request.build_absolute_uri("") == "http://34.66.82.243/comrades/registration/":
-                activation_link = f"https://blackdesert.ololosha.xyz/comrades/activation/{webtoken}"
-            else:
-                activation_link = f"http://127.0.0.1:8000/comrades/activation/{webtoken}"
+            # if request.build_absolute_uri("") == "https://blackdesert.ololosha.xyz/comrades/registration/" or \
+            #         request.build_absolute_uri("") == "http://34.66.82.243/comrades/registration/":
+            activation_link = f"https://blackdesert.ololosha.xyz/comrades/activation/{webtoken}"
+            # else:
+            #     activation_link = f"http://127.0.0.1:8000/comrades/activation/{webtoken}"
             if serializer.user is not None:
                 send_mail(
                     'Hello from eventmaster! To complete registration follow the link below.',
