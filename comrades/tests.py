@@ -121,14 +121,12 @@ class RestTest(APITestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        # print("MY TEST")
         response = self.client.post(
             path=url,
             data=dumps(data),
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # print("END MY TEST")
         # try create user, that already exists
         response = self.client.post(
             path=url,
@@ -155,32 +153,25 @@ class RestTest(APITestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        activation_link = response.json()["activation_link"]
+
         webtoken = response.json()["webtoken"]
+        activation_link = f"/comrades/activation/{webtoken}"
+        fail_link = f"/comrades/activation/12345"
         # valid data
         data = {
             "login": "pedro@gmail.com",
-            "webtoken": webtoken
         }
         # invalid field
         data1 = {
             "lo0gin": "pedro@gmail.com",
-            "webtoken": webtoken
         }
-        # invalid login
+        # invalid login by email
         data2 = {
             "login": "wwwwwwwpedro@gmail.com",
-            "webtoken": webtoken
-        }
-        # invalid webtoken
-        data3 = {
-            "login": "wwwwwwwpedro@gmail.com",
-            "webtoken": "12345"
         }
         # invalid login by username
         data4 = {
             "login": "pedrooooo",
-            "webtoken": webtoken
         }
         response = self.client.get(activation_link, )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -196,9 +187,10 @@ class RestTest(APITestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # valid data, fail_link
         response = self.client.post(
-            path=activation_link,
-            data=dumps(data3),
+            path=fail_link,
+            data=dumps(data),
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -208,17 +200,16 @@ class RestTest(APITestCase):
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        # login by email
+        # activation by email
         response = self.client.post(
             path=activation_link,
             data=dumps(data),
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        # login by username
+        # activation by username
         data = {
             "login": "pedro",
-            "webtoken": webtoken
         }
         response = self.client.post(
             path=activation_link,

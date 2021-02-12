@@ -167,3 +167,5 @@ CELERY_BEAT_SCHEDULE = {
         # "schedule": (20 * 60),
     },
 }
+
+SITE_URL = "https://blackdesert.ololosha.xyz"

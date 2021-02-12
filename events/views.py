@@ -8,7 +8,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import OrderingFilter, SearchFilter
-import datetime
+from datetime import datetime
+from django.utils import timezone
+
+from events.services import event_per_day_func
 
 
 class MyPaginator(PageNumberPagination):
@@ -27,10 +30,14 @@ class ListCreateEvent(ListCreateAPIView):
     queryset = Events.objects.all().order_by("user")
 
     def post(self, request, *args, **kwargs):
-        data = request.data
-        serializer = self.serializer_class(data=data)
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            event = serializer.save(user=request.user)
+            if event.remind:
+                t = str(timezone.make_aware(datetime.now()) - event.time_to_remind)
+                if not t.startswith("-"):
+                    serializer.validated_data["message"] = f"You create the event with remind in the past " \
+                                                           f"- we can't remind you about this event by email"
             return Response(
                 serializer.validated_data,
                 status=status.HTTP_201_CREATED
@@ -76,17 +83,11 @@ class StatisticDay(APIView):
             date_event_str = request.META['QUERY_STRING']
             date_event = date_event_str.split("=")[1]
         else:
+            # date_event = "2021-05-05"
             date_event = data['date_event']
         events = Events.objects.filter(user=request.user, date_event=date_event).order_by("start_time")
         data = dict()
-        i = 0
-        for event in events:
-            event_name = event.event
-            date_event = event.date_event
-            start_time = event.start_time
-            end_time = event.end_time
-            i += 1
-            data[i] = [date_event, start_time, end_time, event_name]
+        data[str(date_event)] = event_per_day_func(events)
         return Response(data, status=status.HTTP_200_OK)
 
 
@@ -105,28 +106,16 @@ class StatisticMonth(APIView):
             month = month_str.split("=")[1]
         else:
             month = data['month']
-        events = Events.objects.filter(user=request.user)
+        events = Events.objects.filter(user=request.user).order_by("date_event")
         data = dict()
-
         date_list = []
         for event in events:
             date_event = event.date_event
-            if str(date_event).startswith(month):
+            if str(date_event).startswith(month) and date_event not in date_list:
                 date_list.append(date_event)
-        list(set(date_list)).sort()
         for date in date_list:
             events_per_day = events.filter(date_event=date).order_by("start_time")
-            i = 0
-            event_list = []
-            ev = dict()
-            for day_event in events_per_day:
-                start_time = day_event.start_time
-                end_time = day_event.end_time
-                event_name = day_event.event
-                i += 1
-                ev[i] = [start_time, end_time, event_name]
-                event_list.append(ev[i])
-            data[str(date)] = event_list
+            data[str(date)] = event_per_day_func(events_per_day)
         return Response(data, status=status.HTTP_200_OK)
 
 # to get full list of holidays uncomment the code below and path in urls.py
@@ -152,7 +141,7 @@ class StatisticMonth(APIView):
 #         return Response(data, status=status.HTTP_200_OK)
 
 
-class HolydaysMonth(APIView):
+class HolidaysMonth(APIView):
     # by token only
     # to test SessionAuthentication  month = "2021-05"
     authentication_classes = [TokenAuthentication]
@@ -169,28 +158,24 @@ class HolydaysMonth(APIView):
             month = data['month']
         user = request.user
         country = user.country
-        holidays = Holidays.objects.filter(country=country)
+        holidays = Holidays.objects.filter(country=country).order_by("date")
         data = dict()
-        d = 0
         date_list = []
         for day in holidays:
             date = day.date
-            if str(date).startswith(month):
+            if str(date).startswith(month) and date not in date_list:
                 date_list.append(date)
-        list(set(date_list)).sort()
         for date in date_list:
-            holiday_per_day = holidays.filter(date=date).order_by("date")
+            holiday_per_day = holidays.filter(date=date)
             i = 0
-            d += 1
             holiday_list = []
             holy = dict()
             for day_holiday in holiday_per_day:
                 holiday = day_holiday.holiday.split(': ')[1]
-                date = day_holiday.date
                 duration = day_holiday.duration.split(',')[0]
                 description = day_holiday.description
                 i += 1
-                holy[i] = [i, date, duration, holiday, description]
-                holiday_list.append(holy[i])
-            data[str(d)] = holiday_list
+                holy[i] = [holiday, description, duration]
+            holiday_list.append(holy)
+            data[str(date)] = holiday_list
         return Response(data, status=status.HTTP_200_OK)

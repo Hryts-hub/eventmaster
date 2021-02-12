@@ -1,7 +1,7 @@
 from django.urls import path
 from events.views import ListCreateEvent, StatisticByUser, StatisticDay, StatisticMonth
 # from events.views import ListHolidays
-from events.views import HolydaysMonth
+from events.views import HolidaysMonth
 
 urlpatterns = [
     path("list_create_event/", ListCreateEvent.as_view(), name='list_create_event'),
@@ -9,5 +9,5 @@ urlpatterns = [
     path("statistic_day/", StatisticDay.as_view(), name='statistic_day'),
     path("statistic_month/", StatisticMonth.as_view(), name='statistic_month'),
     # path("list_holidays/", ListHolidays.as_view(), name='list_holidays'),
-    path("holidays_month/", HolydaysMonth.as_view(), name='holidays_month'),
+    path("holidays_month/", HolidaysMonth.as_view(), name='holidays_month'),
 ]

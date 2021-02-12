@@ -6,7 +6,6 @@ from rest_framework.authtoken.models import Token
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from comrades.models import CustomUser
 from comrades.serializers import RegistrationSerializer, UserSerializer, ActivationSerializer, LoginSerializer
 from django.conf import settings
@@ -20,12 +19,9 @@ class Registration(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
+
             webtoken = default_token_generator.make_token(user=serializer.user)
-
-            activation_link = f"https://blackdesert.ololosha.xyz/comrades/activation/{webtoken}"
-
-            # activation_link = f"http://127.0.0.1:8000/comrades/activation/{webtoken}"
-            # request.build_absolute_uri("") --> http://127.0.0.1:8000/comrades/registration/ <-- even on prod
+            activation_link = f"{settings.SITE_URL}/comrades/activation/{webtoken}"
 
             if serializer.user is not None:
                 send_mail(
@@ -42,7 +38,7 @@ class Registration(GenericAPIView):
                     {
                         "user": UserSerializer(user, context=self.get_serializer_context()).data,
                         "webtoken": webtoken,
-                        "activation_link": activation_link
+                        "activation_link": activation_link,
                     },
                     status=status.HTTP_201_CREATED
                 )

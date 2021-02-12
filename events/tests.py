@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from comrades.models import CustomUser, Country
-from events.models import Events, Holidays
+from events.models import Holidays
 from datetime import timedelta
 
 
@@ -102,6 +102,7 @@ class RestTest(APITestCase):
             headers=self.headers,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # event without remind
         data = {
             "event": "test AAAAAA",
             "date_event": "2021-08-08",
@@ -115,6 +116,24 @@ class RestTest(APITestCase):
             data=data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # event with remind in the past
+        data = {
+            "event": "test PAST",
+            "date_event": "2021-01-01",
+            "start_time": "11:00",
+            "end_time": "12:00",
+            "remind": timedelta(weeks=1),
+        }
+        response = self.client.post(
+            url,
+            headers=self.headers,
+            data=data
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            response.data['message'],
+            "You create the event with remind in the past - we can't remind you about this event by email"
+        )
         print("test_list_create_event")
 
     def test_statistic_by_user(self):
@@ -138,7 +157,8 @@ class RestTest(APITestCase):
             data=data,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        # There are 2 events in request day
+        self.assertEqual(len(response.data['2021-08-08'][0]), 2)
         print("test_statistic_day")
 
     def test_statistic_month(self):
@@ -152,6 +172,7 @@ class RestTest(APITestCase):
             data=data,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # There are 2 days with events
         self.assertEqual(len(response.data), 2)
         print("test_statistic_month")
 
@@ -166,8 +187,8 @@ class RestTest(APITestCase):
             headers=self.headers,
             data=data,
         )
-        # print(len(response.data))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # in test base our country have only 1 day with holiday
         self.assertEqual(len(response.data), 1)
         print("test_holidays_month")
 

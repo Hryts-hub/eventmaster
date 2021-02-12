@@ -165,3 +165,5 @@ CELERY_BEAT_SCHEDULE = {
         # "schedule": (20 * 60),
     },
 }
+
+SITE_URL = "http://127.0.0.1:8000"
