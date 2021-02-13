@@ -12,6 +12,7 @@ class RestTest(APITestCase):
             slug="belarus",
             country_name="Belarus",
         )
+        # activated user
         self.user = CustomUser.objects.create_user(
             email="bbpedro@gmail.com",
             username="bbpedro",
@@ -20,13 +21,31 @@ class RestTest(APITestCase):
             last_name="pedro",
             country=Country.objects.get(slug="belarus")
             )
+        # unactivated user
+        url = reverse('registration')
+        data = {
+            'email': "pedro@gmail.com",
+            'username': "pedro",
+            'password': "useruser",
+            'first_name': "pedro",
+            'last_name': "pedro",
+            'country': "belarus",
+        }
+        response = self.client.post(
+            path=url,
+            data=dumps(data),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.webtoken = response.json()["webtoken"]
+        self.activation_link = f"/comrades/activation/{self.webtoken}"
 
     def test_registration(self):
         url = reverse('registration')
         # valid data
         data = {
-            "email": "pedro@gmail.com",
-            "username": "pedro",
+            "email": "mypedro@gmail.com",
+            "username": "mypedro",
             "password": "useruser",
             "first_name": "pedro",
             "last_name": "pedro",
@@ -34,8 +53,8 @@ class RestTest(APITestCase):
         }
         # invalid field name
         data1 = {
-            'eemail': "pedro@gmail.com",
-            'username': "pedro",
+            'eemail': "mypedro@gmail.com",
+            'username': "mypedro",
             'password': "useruser",
             'first_name': "pedro",
             'last_name': "pedro",
@@ -43,8 +62,8 @@ class RestTest(APITestCase):
         }
         # invalid username
         data2 = {
-            'email': "pedro@gmail.com",
-            'username': "pedro@",
+            'email': "mypedro@gmail.com",
+            'username': "mypedro@",
             'password': "useruser",
             'first_name': "pedro",
             'last_name': "pedro",
@@ -52,8 +71,8 @@ class RestTest(APITestCase):
         }
         # invalid email
         data3 = {
-            'email': "pedrogmail.com",
-            'username': "pedro",
+            'email': "mypedrogmail.com",
+            'username': "mypedro",
             'password': "useruser",
             'first_name': "pedro",
             'last_name': "pedro",
@@ -61,14 +80,14 @@ class RestTest(APITestCase):
         }
         # invalid fields number
         data4 = {
-            'email': "pedro@gmail.com",
-            'username': "pedro",
+            'email': "mypedro@gmail.com",
+            'username': "mypedro",
             'password': "useruser",
         }
         # invalid data
         data5 = {
-            'email': "pedro@gmail.com",
-            'username': "pedro",
+            'email': "mypedro@gmail.com",
+            'username': "mypedro",
             'password': "useruser",
             'first_name': "pedro",
             'last_name': "",
@@ -76,8 +95,8 @@ class RestTest(APITestCase):
         }
         # invalid country
         data6 = {
-            'email': "pedro@gmail.com",
-            'username': "pedro",
+            'email': "mypedro@gmail.com",
+            'username': "mypedro",
             'password': "useruser",
             'first_name': "pedro",
             'last_name': "pedro",
@@ -137,26 +156,6 @@ class RestTest(APITestCase):
         print('test_registration')
 
     def test_activation(self):
-        url = reverse('registration')
-        # valid data
-        data = {
-            'email': "pedro@gmail.com",
-            'username': "pedro",
-            'password': "useruser",
-            'first_name': "pedro",
-            'last_name': "pedro",
-            'country': "belarus",
-        }
-        response = self.client.post(
-            path=url,
-            data=dumps(data),
-            content_type="application/json"
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        webtoken = response.json()["webtoken"]
-        activation_link = f"/comrades/activation/{webtoken}"
-        fail_link = f"/comrades/activation/12345"
         # valid data
         data = {
             "login": "pedro@gmail.com",
@@ -173,36 +172,37 @@ class RestTest(APITestCase):
         data4 = {
             "login": "pedrooooo",
         }
-        response = self.client.get(activation_link, )
+        response = self.client.get(self.activation_link, )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         response = self.client.post(
-            path=activation_link,
+            path=self.activation_link,
             data=dumps(data1),
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.post(
-            path=activation_link,
+            path=self.activation_link,
             data=dumps(data2),
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = self.client.post(
+            path=self.activation_link,
+            data=dumps(data4),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # valid data, fail_link
+        fail_link = f"/comrades/activation/12345"
         response = self.client.post(
             path=fail_link,
             data=dumps(data),
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.post(
-            path=activation_link,
-            data=dumps(data4),
-            content_type="application/json"
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # activation by email
         response = self.client.post(
-            path=activation_link,
+            path=self.activation_link,
             data=dumps(data),
             content_type="application/json"
         )
@@ -212,7 +212,7 @@ class RestTest(APITestCase):
             "login": "pedro",
         }
         response = self.client.post(
-            path=activation_link,
+            path=self.activation_link,
             data=dumps(data),
             content_type="application/json"
         )
@@ -240,13 +240,23 @@ class RestTest(APITestCase):
             'login': "wbpedro",
             'password': "useruser",
         }
-        # valid data, login by email
+        # invalid password, login by username
+        data5 = {
+            'login': "bbpedro",
+            'password': "uuuseruser",
+        }
+        # invalid password, login by email
         data6 = {
+            'login': "bbpedro@gmail.com",
+            'password': "uuuseruser",
+        }
+        # valid data, login by email
+        data7 = {
             'login': "bbpedro@gmail.com",
             'password': "useruser",
         }
         # valid data, login by username
-        data7 = {
+        data8 = {
             'login': "bbpedro",
             'password': "useruser",
         }
@@ -278,17 +288,56 @@ class RestTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         response = self.client.post(
             path=url,
+            data=dumps(data5),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.post(
+            path=url,
             data=dumps(data6),
             content_type="application/json"
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         response = self.client.post(
             path=url,
             data=dumps(data7),
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.post(
+            path=url,
+            data=dumps(data8),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         print('test_login')
+
+    def test_unactivated_login(self):
+        url = reverse("login")
+        # unactivated user
+        # login by email
+        data1 = {
+            'login': "pedro@gmail.com",
+            'password': "useruser",
+        }
+        # login by username
+        data2 = {
+            'login': "pedro",
+            'password': "useruser",
+        }
+        response = self.client.post(
+            path=url,
+            data=dumps(data1),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.post(
+            path=url,
+            data=dumps(data2),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        print('test_unactivated_login')
 
     def test_logout(self):
         url = reverse("logout")

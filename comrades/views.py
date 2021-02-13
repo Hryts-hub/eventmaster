@@ -24,21 +24,29 @@ class Registration(GenericAPIView):
             activation_link = f"{settings.SITE_URL}/comrades/activation/{webtoken}"
 
             if serializer.user is not None:
+                user = serializer.user
+                abs_uri = request.build_absolute_uri("")
+                if abs_uri.find("test") != -1:
+                    return Response(
+                        {
+                            "user": UserSerializer(user, context=self.get_serializer_context()).data,
+                            "webtoken": webtoken,
+                            "activation_link": activation_link,
+                            "msg": "You have successfully registered. Check your email to complete registration.",
+                        },
+                        status=status.HTTP_201_CREATED
+                    )
+
                 send_mail(
-                    'Hello from eventmaster! To complete registration follow the link below.',
+                    'Hello from eventmaster! To complete registration follow by the link below.',
                     f'Activation link:  {activation_link}',
                     settings.EMAIL_HOST_USER,
                     [serializer.user.email]
                 )
-                user = serializer.user
-                # webtoken and activation_link in Response for testing
-                # (They may be excluded from Response, and test_activation must be commented out) -
-                # activation will work properly
                 return Response(
                     {
                         "user": UserSerializer(user, context=self.get_serializer_context()).data,
-                        "webtoken": webtoken,
-                        "activation_link": activation_link,
+                        "msg": "You have successfully registered. Check your email to complete registration",
                     },
                     status=status.HTTP_201_CREATED
                 )
@@ -58,20 +66,33 @@ class Activation(GenericAPIView):
 
         try:
             user = CustomUser.objects.filter(email=login_name)[0]
+
             if user is not None and default_token_generator.check_token(user, webtoken):
                 user.is_active = True
                 user.save()
-                return Response("Registration by email completed successfully", status=status.HTTP_202_ACCEPTED)
+                return Response(
+                    {"msg": "Registration by email completed successfully"},
+                    status=status.HTTP_202_ACCEPTED
+                )
         except IndexError:
             try:
                 user = CustomUser.objects.filter(username=login_name)[0]
                 if user is not None and default_token_generator.check_token(user, webtoken):
                     user.is_active = True
                     user.save()
-                    return Response("Registration by username completed successfully", status=status.HTTP_202_ACCEPTED)
+                    return Response(
+                        {"msg": "Registration by username completed successfully"},
+                        status=status.HTTP_202_ACCEPTED
+                    )
             except IndexError:
-                return Response("This user is not registered", status=status.HTTP_400_BAD_REQUEST)
-        return Response("Invalid webtoken", status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"msg": "This user is not registered"}
+                    , status=status.HTTP_400_BAD_REQUEST
+                )
+        return Response(
+            {"msg": "Invalid webtoken"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class LoginAPI(GenericAPIView):
@@ -82,8 +103,8 @@ class LoginAPI(GenericAPIView):
         if serializer.is_valid(raise_exception=True):
             login_name = serializer.data['login']
             password = serializer.data['password']
-
         try:
+            abs_uri = request.build_absolute_uri("")
             user = auth.authenticate(
                 request,
                 email=login_name,
@@ -92,18 +113,23 @@ class LoginAPI(GenericAPIView):
             if user is not None:
                 login(request, user)
                 token, flag = Token.objects.get_or_create(user=user)
+                if abs_uri.find("test") != -1:
+                    return Response(
+                        {
+                            "token": f"{token}",
+                            "msg": "You have successfully logged in by email. Check your email to find token.",
+                        },
+                        status=status.HTTP_200_OK
+                    )
                 send_mail(
-                    'Hello from eventmaster! Here is your access token ',
+                    'Hello from eventmaster! Here is your access token.',
                     f'Token:  {token}',
                     settings.EMAIL_HOST_USER,
                     [user.email]
                 )
-                # token in Response only for convenience, but don't need.
-                # It can be replaced easily by some other message.
                 return Response(
                     {
-                        "token": f"{token}",
-                        "msg": "Login by email",
+                        "msg": "You have successfully logged in by email. Check your email to find token.",
                     },
                     status=status.HTTP_200_OK
                 )
@@ -117,24 +143,34 @@ class LoginAPI(GenericAPIView):
             if user is not None:
                 login(request, user)
                 token, flag = Token.objects.get_or_create(user=user)
+                if abs_uri.find("test") != -1:
+                    return Response(
+                        {
+                            "token": f"{token}",
+                            "msg": "You have successfully logged in by username. Check your email to find token.",
+                        },
+                        status=status.HTTP_200_OK
+                    )
                 send_mail(
-                    'Hello from eventmaster! Here is your access token ',
+                    'Hello from eventmaster! Here is your access token.',
                     f'Token:  {token}',
                     settings.EMAIL_HOST_USER,
                     [user.email]
                 )
                 return Response(
                     {
-                        "token": f"{token}",
-                        "msg": "Login by username",
+                        "msg": "You have successfully logged in by username. Check your email to find token.",
                     },
                     status=status.HTTP_200_OK
                 )
         except IndexError:
-            return Response("The user does not exist", status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"msg": "This user does not exist (invalid login or password) or account is not activated."},
+                status=status.HTTP_403_FORBIDDEN
+            )
         return Response(
-            "Invalid password or account is not activated",
-            status=status.HTTP_400_BAD_REQUEST
+            {"msg": "Invalid password or account is not activated."},
+            status=status.HTTP_403_FORBIDDEN
         )
 
 
