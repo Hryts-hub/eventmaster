@@ -22,12 +22,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def create(self, validated_data):
-        self.user = CustomUser.objects.create_user(**validated_data)
-        return self.user
+        instance = CustomUser.objects.create_user(**validated_data)
+        return instance
 
     def save(self):
-        self.user = super().save(is_active=False)
-        return self.user
+        self.instance = super().save(is_active=False)
+        return self.instance
 
 
 class ActivationSerializer(serializers.ModelSerializer):

@@ -161,8 +161,8 @@ CELERY_BEAT_SCHEDULE = {
     },
     "task_refresh_holidays": {
         "task": "events.tasks.refresh_holidays",
-        "schedule": ((30*24*30) * 60),
-        # "schedule": (20 * 60),
+        # "schedule": ((30*24*30) * 60),
+        "schedule": (20 * 60),
     },
 }
 

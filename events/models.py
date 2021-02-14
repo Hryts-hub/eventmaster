@@ -44,6 +44,7 @@ class Holidays(models.Model):
     date = models.DateField()
     duration = models.CharField(max_length=50)
     description = models.TextField(blank=True)
+    updated = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.holiday} - {self.country}"

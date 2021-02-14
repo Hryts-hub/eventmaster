@@ -19,12 +19,12 @@ class Registration(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
+            user = serializer.instance
 
-            webtoken = default_token_generator.make_token(user=serializer.user)
+            webtoken = default_token_generator.make_token(user=user)
             activation_link = f"{settings.SITE_URL}/comrades/activation/{webtoken}"
 
-            if serializer.user is not None:
-                user = serializer.user
+            if user is not None:
                 abs_uri = request.build_absolute_uri("")
                 if abs_uri.find("test") != -1:
                     return Response(
