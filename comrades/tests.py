@@ -50,6 +50,7 @@ class RestTest(APITestCase):
             "first_name": "pedro",
             "last_name": "pedro",
             "country": "belarus",
+            "offset": "3"
         }
         # invalid field name
         data1 = {
@@ -102,6 +103,16 @@ class RestTest(APITestCase):
             'last_name': "pedro",
             'country': "asdfdsfafd",
         }
+        # invalid offset
+        data7 = {
+            'email': "mypedro@gmail.com",
+            'username': "mypedro",
+            'password': "useruser",
+            'first_name': "pedro",
+            'last_name': "pedro",
+            'country': "asdfdsfafd",
+            "offset": "12345"
+        }
         response = self.client.get(url, )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         response = self.client.post(
@@ -137,6 +148,12 @@ class RestTest(APITestCase):
         response = self.client.post(
             path=url,
             data=dumps(data6),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = self.client.post(
+            path=url,
+            data=dumps(data7),
             content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

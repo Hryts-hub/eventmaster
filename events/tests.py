@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from comrades.models import CustomUser, Country
 from events.models import Holidays
-from datetime import timedelta
 
 
 class RestTest(APITestCase):
@@ -19,7 +18,7 @@ class RestTest(APITestCase):
             country=Country.objects.get(slug="belarus"),
             date="2021-05-09",
             duration="1 day, ",
-            description="models.TextField(blank=True)"
+            description="xxxxxxxx"
         )
         # юзер с страной
         self.user = CustomUser.objects.create_user(
@@ -28,9 +27,9 @@ class RestTest(APITestCase):
             password="useruser",
             first_name="pedro",
             last_name="pedro",
-            country=Country.objects.get(slug="belarus")
+            country=Country.objects.get(slug="belarus"),
+            offset="3",
             )
-
         url = reverse("login")
         # valid data, login by email
         data5 = {
@@ -56,7 +55,7 @@ class RestTest(APITestCase):
             "date_event": "2021-08-08",
             "start_time": "11:00",
             "end_time": "12:00",
-            "remind": timedelta(seconds=3600),
+            "remind": "3600",
         }
         response = self.client.post(
             url,
@@ -71,7 +70,7 @@ class RestTest(APITestCase):
             "date_event": "2021-08-08",
             "start_time": "14:00",
             "end_time": "16:00",
-            "remind": timedelta(days=1),
+            "remind": "86400",
         }
         response = self.client.post(
             url,
@@ -86,7 +85,7 @@ class RestTest(APITestCase):
             "date_event": "2021-08-07",
             "start_time": "15:00",
             "end_time": "16:00",
-            "remind": timedelta(weeks=1),
+            "remind": "604800",
         }
         response = self.client.post(
             url,
@@ -108,7 +107,7 @@ class RestTest(APITestCase):
             "date_event": "2021-08-08",
             "start_time": "11:00",
             "end_time": "12:00",
-            "remind": "",
+            "remind": "0",
         }
         response = self.client.post(
             url,
@@ -122,7 +121,7 @@ class RestTest(APITestCase):
             "date_event": "2021-01-01",
             "start_time": "11:00",
             "end_time": "12:00",
-            "remind": timedelta(weeks=1),
+            "remind": "604800",
         }
         response = self.client.post(
             url,

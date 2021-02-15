@@ -23,6 +23,7 @@ class ListCreateEvent(ListCreateAPIView):
     # authentication_classes = [SessionAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = EventSerializer
+
     # this code for testing with SessionAuthentication
     pagination_class = MyPaginator
     filter_backends = [OrderingFilter, SearchFilter]
@@ -76,9 +77,9 @@ class StatisticDay(APIView):
 
     def get(self, request):
         data = request.data
-        # в тестах запрос идет в урле
+        # in tests data fields in url.
         # GET '/events/statistic_day/?date_event=2021-08-08',
-        # a сюда data попадает пустой.
+        # during running tests data == {} and we are gets data fields from request.META['QUERY_STRING']
         if data == {}:
             date_event_str = request.META['QUERY_STRING']
             date_event = date_event_str.split("=")[1]
@@ -101,10 +102,10 @@ class StatisticMonth(APIView):
     def get(self, request):
         data = request.data
         if data == {}:
-            # month = "2021-05" #  test
             month_str = request.META['QUERY_STRING']
             month = month_str.split("=")[1]
         else:
+            # month = "2021-05" #  test
             month = data['month']
         events = Events.objects.filter(user=request.user).order_by("date_event")
         data = dict()
@@ -118,28 +119,6 @@ class StatisticMonth(APIView):
             data[str(date)] = event_per_day_func(events_per_day)
         return Response(data, status=status.HTTP_200_OK)
 
-# to get full list of holidays uncomment the code below and path in urls.py
-
-# class ListHolidays(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     # authentication_classes = [SessionAuthentication]
-#     permission_classes = [IsAuthenticated]
-#
-#     def get(self, request):
-#         user = request.user
-#         country = user.country
-#         holidays = Holidays.objects.filter(country=country).order_by("date")
-#         data = dict()
-#         i = 0
-#         for day in holidays:
-#             holiday = day.holiday.split(': ')[1]
-#             date = day.date
-#             duration = day.duration.split(',')[0]
-#             description = day.description
-#             i += 1
-#             data[i] = [date, holiday, duration, description]
-#         return Response(data, status=status.HTTP_200_OK)
-
 
 class HolidaysMonth(APIView):
     # by token only
@@ -151,10 +130,10 @@ class HolidaysMonth(APIView):
     def get(self, request):
         data = request.data
         if data == {}:
-            # month = "2021-05"  #  test
             month_str = request.META['QUERY_STRING']
             month = month_str.split("=")[1]
         else:
+            # month = "2021-05"  #  test
             month = data['month']
         user = request.user
         country = user.country

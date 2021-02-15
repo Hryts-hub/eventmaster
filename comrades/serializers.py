@@ -6,14 +6,14 @@ from comrades.models import CustomUser
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'first_name', 'last_name', 'country')
+        fields = ('username', 'email', 'first_name', 'last_name', 'country', 'offset')
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('email', 'username', 'first_name', 'last_name', 'password', 'country')
+        fields = ('email', 'username', 'first_name', 'last_name', 'password', 'country', 'offset')
 
     def validate(self, attrs):
         username = attrs['username']

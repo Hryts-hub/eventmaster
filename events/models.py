@@ -6,24 +6,22 @@ import datetime
 
 
 class Events(models.Model):
-    # offset должено быть св-вом юзера и вписываться при регистрации, но пока что так...
-    offset = datetime.timedelta(hours=3)
 
-    DO_NOT_REMIND = ""
     REMINDER = [
-        (DO_NOT_REMIND, 'do not remind'),
-        ((timedelta(hours=1)), 'remind me in an hour'),
-        ((timedelta(hours=2)), 'remind me in two hours'),
-        ((timedelta(hours=4)), 'remind me in four hours'),
-        ((timedelta(days=1)), 'remind me of the day'),
-        ((timedelta(weeks=1)), 'remind me a week in advance'),
+        ("0", 'Do not remind'),
+        ("3600", '1 hour'),
+        ("7200", '2 hours'),
+        ("14400", '4 hours'),
+        ("86400", '1 day'),
+        ("604800", '1 week'),
     ]
+
     event = models.CharField(max_length=250)
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='users_events')
+    user: CustomUser = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='users_events')
     date_event = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField(default='23:59', blank=True)
-    remind = models.CharField(default=DO_NOT_REMIND, max_length=30, choices=REMINDER)
+    remind = models.CharField(default="0", max_length=30, choices=REMINDER)
     time_to_remind = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
@@ -32,15 +30,17 @@ class Events(models.Model):
     def save(self, **kwargs):
         if self.remind:
             datetime_event = datetime.datetime.combine(self.date_event, self.start_time)
-            self.time_to_remind = datetime_event - self.remind
-            self.time_to_remind = timezone.make_aware(self.time_to_remind)
-            self.time_to_remind = self.time_to_remind - self.offset
+            rem = timedelta(seconds=int(str(self.remind)))
+            self.time_to_remind = timezone.make_aware(datetime_event - rem)
+            offset = timedelta(hours=int(self.user.offset))
+            if offset:
+                self.time_to_remind = self.time_to_remind - offset
         super().save(**kwargs)
 
 
 class Holidays(models.Model):
     holiday = models.CharField(max_length=250)
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="country_holidays")
+    country: Country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="country_holidays")
     date = models.DateField()
     duration = models.CharField(max_length=50)
     description = models.TextField(blank=True)

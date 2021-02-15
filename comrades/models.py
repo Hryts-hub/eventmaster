@@ -1,5 +1,3 @@
-# from importlib._common import _
-# from .validators import UnicodeUsernameValidator
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -17,7 +15,12 @@ class Country(models.Model):
 class CustomUser(AbstractUser):
     username_validator = UnicodeUsernameValidator()
 
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True, blank=True, related_name="users_country")
+    TIME_ZONE = [
+        ("0", 'Greenwich Mean time'),
+        ("3", '3 hours'),
+    ]
+    offset = models.CharField(default="0", max_length=2, null=True, choices=TIME_ZONE)
+    country: Country = models.ForeignKey(Country, on_delete=models.CASCADE, null=True, blank=True, related_name="users_country")
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     email = models.EmailField(unique=True)

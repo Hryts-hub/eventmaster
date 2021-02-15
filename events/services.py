@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+from django.core.exceptions import MultipleObjectsReturned
 from comrades.models import Country
 from events.models import Holidays
 from tqdm import tqdm
@@ -97,6 +98,7 @@ def update_holidays():
 
     if check:
         count_of_deleted = 0
+        count_of_recreated = 0
         countries = Country.objects.all()
         for country in tqdm(countries):
             url = f"https://www.officeholidays.com/ics/ics_country.php?tbl_country={country}"
@@ -111,32 +113,53 @@ def update_holidays():
                 bd_holidays_in_country.bulk_update(obj, ['updated'])
             except Exception as e:
                 return e
-
+            # If somebody runs holidays.py several times --> appears lots of duplicates.
+            # Duplicates rises MultipleObjectsReturned and gets deleted from BD.
+            # We are store such holiday in duplicates_list and recreate this holiday.
+            duplicates_list = []
             try:
                 calendar = Calendar(res)
                 holidays = calendar.events
                 for holiday_obj in holidays:
-                    Holidays.objects.update_or_create(
-                        holiday=holiday_obj.name,
-                        date=holiday_obj.begin.date(),
-                        duration=holiday_obj.duration,
-                        description=holiday_obj.description,
-                        defaults={
-                            "holiday": holiday_obj.name,
-                            "country": Country.objects.get(country_name=holiday_obj.location),
-                            "date": holiday_obj.begin.date(),
-                            "duration": holiday_obj.duration,
-                            "description": holiday_obj.description,
-                            "updated": True
-                        }
-                    )
+                    try:
+                        Holidays.objects.update_or_create(
+                            holiday=holiday_obj.name,
+                            date=holiday_obj.begin.date(),
+                            duration=holiday_obj.duration,
+                            description=holiday_obj.description,
+                            defaults={
+                                "holiday": holiday_obj.name,
+                                "country": Country.objects.get(country_name=holiday_obj.location),
+                                "date": holiday_obj.begin.date(),
+                                "duration": holiday_obj.duration,
+                                "description": holiday_obj.description,
+                                "updated": True
+                            }
+                        )
+                    except MultipleObjectsReturned:
+                        duplicates_list.append(holiday_obj)
+                        pass
             except Exception as e:
                 print(e)
                 pass
             holiday_for_delete = Holidays.objects.filter(country=country.slug).filter(updated=False)
             deleted = holiday_for_delete.delete()
+
+            for holiday_obj in duplicates_list:
+                Holidays.objects.create(
+                    holiday=holiday_obj.name,
+                    country=Country.objects.get(country_name=holiday_obj.location),
+                    date=holiday_obj.begin.date(),
+                    duration=holiday_obj.duration,
+                    description=holiday_obj.description,
+                )
+                count_of_recreated += 1
+
             count_of_deleted += deleted[0]
-        print(check, f"Count of deleted holidays objects: {count_of_deleted}.")
+
+        print(check)
+        print(f"Deleted holidays objects: {count_of_deleted}.")
+        print(f"Recreated holidays objects: {count_of_recreated}.")
 
 
 def event_per_day_func(events):

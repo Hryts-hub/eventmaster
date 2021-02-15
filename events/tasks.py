@@ -13,7 +13,7 @@ def remind_event():
         first_date = timezone.make_aware(datetime.now())
         last_date = first_date + timedelta(minutes=10)
         events = Events.objects.filter(time_to_remind__range=(first_date, last_date))
-
+        i = 0
         for event in events:
             subject = f'{event.user.username}, Hello from eventmaster! '
             message = f'Your event  --- {event.event} ---.  ' \
@@ -24,9 +24,9 @@ def remind_event():
                 settings.EMAIL_HOST_USER,
                 [event.user.email]
             )
-
+            i += 1
             Events.objects.filter(id=event.id).update(time_to_remind=None)
-        print("remind - OK")
+        print(f"Mails sent: {i}.")
 
     except Exception as e:
         print(f"remind ERROR: {e}")
