@@ -12,15 +12,35 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import os
 import sys
 from pathlib import Path
+import json
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+key = os.path.join(BASE_DIR, "eventmaster/prod_secrets.json")
+with open(key) as f:
+    secret_values = json.loads(f.read())
+
+
+def get_secret(setting):
+    try:
+        return secret_values[setting]
+    except KeyError:
+        if 'test' in sys.argv or 'test_coverage' in sys.argv:
+            pass
+        else:
+            error_msg = "Set the {} environment variable".format(setting)
+            raise ImproperlyConfigured(error_msg)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '5qn64_joa#$@(1e-u1xy%34=x%e2ur(e@ecwxj0%ofr#(kvb5d'
+SECRET_KEY = get_secret("DJANGO_SECRET_KEY")
+if 'test' in sys.argv or 'test_coverage' in sys.argv:
+    SECRET_KEY = '5qn64_joa#$@(1e-u1xy%34=x%e2ur(e@ecwxj0%ofr#(kvb5d'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
@@ -76,24 +96,19 @@ WSGI_APPLICATION = 'eventmaster.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'django_db',
-        'USER': 'django_user',
-        'PASSWORD': 'django_password',
+        'NAME': get_secret("DJANGO_DB_NAME"),
+        'USER': get_secret("DJANGO_DB_USER"),
+        'PASSWORD': get_secret("DJANGO_DB_PASSWORD"),
         'PORT': 5432,
         'HOST': '127.0.0.1'
     }
 }
 
-if 'test' in sys.argv or 'test_coverage' in sys.argv: #Covers regular testing and django-coverage
+if 'test' in sys.argv or 'test_coverage' in sys.argv:
     DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
     DATABASES['default']['NAME'] = ':memory:'
 
@@ -135,11 +150,15 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST_USER = "kisik4test1@gmail.com"
+EMAIL_HOST_USER = get_secret("DJANGO_EMAIL_HOST_USER")
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_PASSWORD = "qazxcv42"
+EMAIL_HOST_PASSWORD = get_secret("DJANGO_EMAIL_HOST_PASSWORD")
+
+if 'test' in sys.argv or 'test_coverage' in sys.argv:
+    EMAIL_HOST_USER = "test@gmail.com"
+    EMAIL_HOST_PASSWORD = "test42"
 
 CACHES = {
     "default": {

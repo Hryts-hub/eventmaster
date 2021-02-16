@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '5qn64_joa#$@(1e-u1xy%34=x%e2ur(e@ecwxj0%ofr#(kvb5d'
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -77,10 +77,6 @@ WSGI_APPLICATION = 'eventmaster.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-# in db_keys.txt
-# POSTGRES_PASSWORD=useruser
-# POSTGRES_USER=Kat
-# POSTGRES_DB=Kat_db
 
 DATABASES = {
     'default': {
@@ -132,11 +128,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST_USER = "kisik4test1@gmail.com"
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_PASSWORD = "qazxcv42"
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 
 CACHES = {

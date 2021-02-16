@@ -12,16 +12,31 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
+import json
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+key = os.path.join(BASE_DIR, "SQLite_settings/secrets.json")
+with open(key) as f:
+    secret_values = json.loads(f.read())
+
+
+def get_secret(setting):
+    try:
+        return secret_values[setting]
+    except KeyError:
+        error_msg = "Set the {} environment variable".format(setting)
+        raise ImproperlyConfigured(error_msg)
+
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = get_secret("DJANGO_SECRET_KEY")
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '5qn64_joa#$@(1e-u1xy%34=x%e2ur(e@ecwxj0%ofr#(kvb5d'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -82,7 +97,6 @@ WSGI_APPLICATION = 'eventmaster.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': BASE_DIR / 'db.sqlite3',
         'NAME': BASE_DIR / 'db_local.sqlite3',
     }
 }
@@ -128,10 +142,10 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST_USER = "kisik4test1@gmail.com"
+EMAIL_HOST_USER = get_secret("DJANGO_EMAIL_HOST_USER")
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_PASSWORD = "qazxcv42"
+EMAIL_HOST_PASSWORD = get_secret("DJANGO_EMAIL_HOST_PASSWORD")
 
 SITE_URL = "http://127.0.0.1:8000"

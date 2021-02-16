@@ -113,3 +113,7 @@ media/
 # **/migrations/**
 # !**/migrations
 # !**/migrations/__init__.py
+/secrets.json
+/eventmaster/SQLite_settings/secrets.json
+/secrets.json
+/eventmaster/prod_secrets.json

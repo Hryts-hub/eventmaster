@@ -29,6 +29,8 @@ class Registration(GenericAPIView):
                 if abs_uri.find("test") != -1:
                     return Response(
                         {
+                            "host_email": settings.EMAIL_HOST_USER,
+                            "user_email": user.email,
                             "user": UserSerializer(user, context=self.get_serializer_context()).data,
                             "webtoken": webtoken,
                             "activation_link": activation_link,
@@ -41,7 +43,7 @@ class Registration(GenericAPIView):
                     'Hello from eventmaster! To complete registration follow by the link below.',
                     f'Activation link:  {activation_link}',
                     settings.EMAIL_HOST_USER,
-                    [serializer.user.email]
+                    [user.email]
                 )
                 return Response(
                     {
@@ -116,6 +118,8 @@ class LoginAPI(GenericAPIView):
                 if abs_uri.find("test") != -1:
                     return Response(
                         {
+                            "host_email": settings.EMAIL_HOST_USER,
+                            "user_email": user.email,
                             "token": f"{token}",
                             "msg": "You have successfully logged in by email. Check your email to find token.",
                         },
@@ -146,6 +150,8 @@ class LoginAPI(GenericAPIView):
                 if abs_uri.find("test") != -1:
                     return Response(
                         {
+                            "host_email": settings.EMAIL_HOST_USER,
+                            "user_email": user.email,
                             "token": f"{token}",
                             "msg": "You have successfully logged in by username. Check your email to find token.",
                         },
