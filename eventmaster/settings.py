@@ -18,14 +18,20 @@ from django.core.exceptions import ImproperlyConfigured
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-key = os.path.join(BASE_DIR, "eventmaster/prod_secrets.json")
-with open(key) as f:
-    secret_values = json.loads(f.read())
+if 'test' in sys.argv or 'test_coverage' in sys.argv:
+    pass
+else:
+    key = os.path.join(BASE_DIR, "prod_secrets.json")
+    with open(key) as f:
+        secret_values = json.loads(f.read())
 
 
 def get_secret(setting):
     try:
-        return secret_values[setting]
+        if 'test' in sys.argv or 'test_coverage' in sys.argv:
+            pass
+        else:
+            return secret_values[setting]
     except KeyError:
         if 'test' in sys.argv or 'test_coverage' in sys.argv:
             pass
@@ -40,7 +46,7 @@ def get_secret(setting):
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = get_secret("DJANGO_SECRET_KEY")
 if 'test' in sys.argv or 'test_coverage' in sys.argv:
-    SECRET_KEY = '5qn64_joa#$@(1e-u1xy%34=x%e2ur(e@ecwxj0%ofr#(kvb5d'
+    SECRET_KEY = '5qn64_joa#$@(1e-u1xy%34=x%e2ur(e@ecwxj0%ofr#(kvb7d'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
