@@ -10,8 +10,9 @@ from events.services import update_holidays
 @shared_task()
 def remind_event():
     try:
-        first_date = timezone.make_aware(datetime.now())
-        last_date = first_date + timedelta(minutes=10)
+        t = timezone.make_aware(datetime.now())
+        first_date = t - timedelta(minutes=5)
+        last_date = t + timedelta(minutes=10)
         events = Events.objects.filter(time_to_remind__range=(first_date, last_date))
         i = 0
         for event in events:
