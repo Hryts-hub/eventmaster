@@ -15,7 +15,7 @@ you can visit endpoins or put the code below into the jupyternotebook.
 from requests import get, post
 
 # registration
-# country examles: belarus, bonaire-st-eustatius-saba, central-african-republic, sao-tome-and-principe, ...
+# country examples: belarus, bonaire-st-eustatius-saba, central-african-republic, sao-tome-and-principe, ...
 # "offset":"3" or "0" (country and offset fiels do not required)
 # "0", 'Greenwich Mean time'
 # "3", '3 hours'
