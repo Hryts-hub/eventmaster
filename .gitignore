@@ -117,3 +117,4 @@ media/
 /eventmaster/SQLite_settings/secrets.json
 /secrets.json
 /eventmaster/prod_secrets.json
+/prod_secrets.json
