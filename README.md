@@ -7,7 +7,7 @@ You can clone the project and run it using SQLite or
 in Docker using PostgreSQL (needs adding docker-compose.yml and django_docker_file).
 In manage.py you should set DJANGO_SETTINGS_MODULE with settings.py you would like use. 
 
-### To test project site:
+### To test project site (!!!the site is no longer available!!!):
 
 you can visit endpoints or put the code below into the jupyternotebook.
 
